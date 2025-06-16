@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/15 * * * *'  # roda a cada 15 minutos (ajuste se quiser)
+    - cron: '*/15 * * * *'  # roda a cada 15 minutos
 
 jobs:
   run-bot:
@@ -26,4 +26,4 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          python your_bot_script.py
+          python newbot.py
