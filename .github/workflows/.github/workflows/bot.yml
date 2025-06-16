@@ -27,3 +27,15 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           python newbot.py
+          import asyncio
+import os
+from telegram import Bot
+
+async def notify_start():
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = 1623073007  # Seu ID do Telegram
+    bot = Bot(token=token)
+    await bot.send_message(chat_id=chat_id, text="✅ Bot do Estilo do Laperuta iniciado com sucesso!")
+
+asyncio.run(notify_start())
+
