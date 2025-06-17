@@ -1,56 +1,54 @@
+import requests
+from bs4 import BeautifulSoup
+from telegram.ext import ApplicationBuilder, JobQueue
 import asyncio
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
-import logging
 
-# CONFIGURAÇÕES FIXAS
-TOKEN = "7875891498:AAHEmRJRUqXQrxnMZrrxqj-zN2J7BwwzUOQ"  # Seu token do bot
-CHAT_ID = "-1002120685101"  # ID do canal ou grupo
-INTERVALO_MINUTOS = 2  # Tempo entre mensagens
+TOKEN = '8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk'
+CHAT_ID = 1623073007
+SHOPEE_OFFERS_URL = 'https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1'
 
-# ATIVAR LOGS
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+async def enviar_ofertas(context):
+    try:
+        response = requests.get(SHOPEE_OFFERS_URL)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-# Comando /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🤖 Bot do Laperuta ativo com ofertas automáticas!")
+        # Exemplo básico para pegar nomes e links — ajustar conforme estrutura da Shopee
+        produtos = soup.find_all('a', href=True)  # Pega todos links, filtrar depois
 
-# Mensagem de oferta automática
-async def enviar_ofertas(context: ContextTypes.DEFAULT_TYPE):
-    mensagem = (
-        "🔥 Oferta Relâmpago na Amazon!\n\n"
-        "💪 *Colágeno Tipo 2 Premium + Cálcio + Magnésio* – ideal para suas articulações!\n\n"
-        "🛒 Aproveite aqui 👉 [Ver na Amazon](https://amzn.to/4ktiC8y)\n\n"
-        "🚚 Entrega rápida | ✅ Produto bem avaliado | 💰 Preço especial por tempo limitado"
-    )
+        mensagem = '🔥 Ofertas Relâmpago Shopee 🔥\n\n'
+        count = 0
 
-    await context.bot.send_message(
-        chat_id=CHAT_ID,
-        text=mensagem,
-        parse_mode="Markdown"
-    )
+        for produto in produtos:
+            href = produto['href']
+            if '/product/' in href or '/item/' in href:  # Filtros simples para links de produto
+                nome = produto.get_text(strip=True)
+                if not nome:
+                    continue
 
-# Função principal
+                link_completo = 'https://shopee.com.br' + href
+
+                mensagem += f"{nome}\n{link_completo}\n\n"
+                count += 1
+                if count >= 5:
+                    break
+
+        if count == 0:
+            mensagem = 'Nenhuma oferta relâmpago encontrada no momento.'
+
+        await context.bot.send_message(chat_id=CHAT_ID, text=mensagem)
+
+    except Exception as e:
+        print(f"Erro ao enviar ofertas: {e}")
+
 async def main():
-    app = Application.builder().token(TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-
+    app = ApplicationBuilder().token(TOKEN).build()
     job_queue: JobQueue = app.job_queue
-    job_queue.run_repeating(enviar_ofertas, interval=INTERVALO_MINUTOS * 60, first=10)
 
-    logger.info("🚀 Bot iniciado no Railway com envio a cada 2 minutos.")
+    job_queue.run_repeating(enviar_ofertas, interval=120, first=10)  # 2 minutos
+
+    print("Bot iniciado. Enviando ofertas a cada 2 minutos.")
     await app.run_polling()
 
-# Execução segura
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        if str(e).startswith("This event loop is already running"):
-            import nest_asyncio
-            nest_asyncio.apply()
-            asyncio.get_event_loop().run_until_complete(main())
-        else:
-            raise
+if __name__ == '__main__':
+    asyncio.run(main())
