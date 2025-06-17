@@ -1,62 +1,56 @@
 import asyncio
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
+import logging
 
-TOKEN = "8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
-LINK_AFILIADO = "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1"
-INTERVALO_MINUTOS = 5
+# CONFIGURAÇÕES FIXAS
+TOKEN = "7875891498:AAHEmRJRUqXQrxnMZrrxqj-zN2J7BwwzUOQ"  # Seu token do bot
+CHAT_ID = "-1002120685101"  # ID do canal ou grupo
+INTERVALO_MINUTOS = 2  # Tempo entre mensagens
 
-MENSAGEM = f"""🔥 *Ofertas Relâmpago Shopee!*
+# ATIVAR LOGS
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-Confira agora as melhores promoções.
-
-🛍️ [Clique aqui e aproveite]({LINK_AFILIADO})
-
-Estoque limitado!
-"""
-
+# Comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Olá, o bot está funcionando!")
+    await update.message.reply_text("🤖 Bot do Laperuta ativo com ofertas automáticas!")
 
-async def oferta(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if "chats" not in context.application.bot_data:
-        context.application.bot_data["chats"] = set()
-    context.application.bot_data["chats"].add(chat_id)
-    await update.message.reply_text(f"Você receberá ofertas a cada {INTERVALO_MINUTOS} minutos.")
-
+# Mensagem de oferta automática
 async def enviar_ofertas(context: ContextTypes.DEFAULT_TYPE):
-    chats = context.application.bot_data.get("chats", set())
-    for chat_id in chats:
-        try:
-            await context.bot.send_message(chat_id=chat_id, text=MENSAGEM, parse_mode="Markdown")
-        except Exception as e:
-            print(f"Erro ao enviar para {chat_id}: {e}")
+    mensagem = (
+        "🔥 Oferta Relâmpago na Amazon!\n\n"
+        "💪 *Colágeno Tipo 2 Premium + Cálcio + Magnésio* – ideal para suas articulações!\n\n"
+        "🛒 Aproveite aqui 👉 [Ver na Amazon](https://amzn.to/4ktiC8y)\n\n"
+        "🚚 Entrega rápida | ✅ Produto bem avaliado | 💰 Preço especial por tempo limitado"
+    )
 
+    await context.bot.send_message(
+        chat_id=CHAT_ID,
+        text=mensagem,
+        parse_mode="Markdown"
+    )
+
+# Função principal
 async def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("oferta", oferta))
 
-    # Agenda o job para enviar ofertas
-    app.job_queue.run_repeating(enviar_ofertas, interval=INTERVALO_MINUTOS * 60, first=10)
+    job_queue: JobQueue = app.job_queue
+    job_queue.run_repeating(enviar_ofertas, interval=INTERVALO_MINUTOS * 60, first=10)
 
-    print("Bot rodando...")
+    logger.info("🚀 Bot iniciado no Railway com envio a cada 2 minutos.")
+    await app.run_polling()
 
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-    
-    # Aguarda até ser encerrado (ctrl+c)
-    await asyncio.Event().wait()
-
+# Execução segura
 if __name__ == "__main__":
-    # Railway já roda um loop, então rodamos main direto no loop atual
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-
-
-
-
-   
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if str(e).startswith("This event loop is already running"):
+            import nest_asyncio
+            nest_asyncio.apply()
+            asyncio.get_event_loop().run_until_complete(main())
+        else:
+            raise
