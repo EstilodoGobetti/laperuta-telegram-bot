@@ -22,5 +22,5 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 print("Bot atualizado!")
-Force redeploy com novo token
+
 
