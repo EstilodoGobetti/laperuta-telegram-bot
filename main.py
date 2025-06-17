@@ -1,24 +1,19 @@
+# main.py
+
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Comando /start
+# Comando de boas-vindas
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🤖 Olá! Bot ativo e funcionando!")
+    await update.message.reply_text("✅ Bot ativo! Use /start para testar comandos.")
 
-async def main():
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
+# Criação do bot
+app = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
 
-    if not token:
-        print("❌ ERRO: TELEGRAM_BOT_TOKEN não configurado no Railway!")
-        return
+# Adicionando o comando /start
+app.add_handler(CommandHandler("start", start))
 
-    app = ApplicationBuilder().token(token).build()
-    app.add_handler(CommandHandler("start", start))
-
-    print("🚀 Bot pronto para receber comandos.")
-    await app.run_polling()
-
-# Rodando de forma compatível com Railway
-import asyncio
-asyncio.run(main())
+# Inicia o bot
+print("🚀 Bot pronto para receber comandos.")
+app.run_polling()
