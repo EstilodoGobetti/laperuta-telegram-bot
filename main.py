@@ -1,14 +1,11 @@
-import asyncio
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
 
-# === CONFIGURAÇÕES ===
 TOKEN = "8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
 LINK_AFILIADO = "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1"
 CATEGORIA = "Ofertas Relâmpago"
-INTERVALO_MINUTOS = 5  # intervalo menor para enviar ofertas mais rápido
+INTERVALO_MINUTOS = 5
 
-# === TEXTO DA MENSAGEM ===
 MENSAGEM = f"""🔥 *{CATEGORIA} Shopee!*
 
 Aproveite agora as melhores promoções com frete grátis e cupons de desconto.
@@ -18,14 +15,12 @@ Aproveite agora as melhores promoções com frete grátis e cupons de desconto.
 ✅ Estoque limitado. Preço pode mudar a qualquer momento!
 """
 
-# === COMANDO /start ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "✅ Bot de ofertas da Shopee ativado!\nUse /oferta para começar a receber promoções."
     )
 
-# === COMANDO /oferta ===
-async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def oferta(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if "chats" not in context.application.bot_data:
         context.application.bot_data["chats"] = set()
@@ -35,37 +30,26 @@ async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown",
     )
 
-# === ENVIA MENSAGEM DE OFERTA ===
-async def enviar_oferta(application):
-    chats = application.bot_data.get("chats", set())
+async def enviar_ofertas(context: ContextTypes.DEFAULT_TYPE):
+    chats = context.application.bot_data.get("chats", set())
     for chat_id in chats:
         try:
-            await application.bot.send_message(
-                chat_id=chat_id, text=MENSAGEM, parse_mode="Markdown"
-            )
+            await context.bot.send_message(chat_id=chat_id, text=MENSAGEM, parse_mode="Markdown")
         except Exception as e:
             print(f"Erro ao enviar mensagem para {chat_id}: {e}")
 
-# === AGENDADOR ===
-def agendar_tarefa(application):
-    async def loop():
-        while True:
-            await enviar_oferta(application)
-            await asyncio.sleep(INTERVALO_MINUTOS * 60)
-    asyncio.create_task(loop())
-
-# === FUNÇÃO PRINCIPAL ===
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("oferta", registrar))
+    app.add_handler(CommandHandler("oferta", oferta))
 
-    agendar_tarefa(app)
+    # Agenda tarefa periódica com o job_queue do telegram.ext
+    job_queue: JobQueue = app.job_queue
+    job_queue.run_repeating(enviar_ofertas, interval=INTERVALO_MINUTOS*60, first=10)
 
     print("🚀 Bot iniciado. Esperando comandos...")
     app.run_polling()
 
 if __name__ == "__main__":
     main()
-
