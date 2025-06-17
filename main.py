@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 TOKEN = "8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
 LINK_AFILIADO = "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1"
 CATEGORIA = "Ofertas Relâmpago"
-INTERVALO_MINUTOS = 5  # intervalo reduzido para 5 minutos
+INTERVALO_MINUTOS = 5  # intervalo menor para enviar ofertas mais rápido
 
 # === TEXTO DA MENSAGEM ===
 MENSAGEM = f"""🔥 *{CATEGORIA} Shopee!*
@@ -46,28 +46,26 @@ async def enviar_oferta(application):
         except Exception as e:
             print(f"Erro ao enviar mensagem para {chat_id}: {e}")
 
-# === LOOP DE AGENDAMENTO ===
-async def agendar_ofertas(application):
-    while True:
-        await enviar_oferta(application)
-        await asyncio.sleep(INTERVALO_MINUTOS * 60)
+# === AGENDADOR ===
+def agendar_tarefa(application):
+    async def loop():
+        while True:
+            await enviar_oferta(application)
+            await asyncio.sleep(INTERVALO_MINUTOS * 60)
+    asyncio.create_task(loop())
 
 # === FUNÇÃO PRINCIPAL ===
-async def main():
+def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("oferta", registrar))
 
-    # agendador em segundo plano
-    asyncio.create_task(agendar_ofertas(app))
+    agendar_tarefa(app)
 
     print("🚀 Bot iniciado. Esperando comandos...")
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
-     
-
+    main()
 
