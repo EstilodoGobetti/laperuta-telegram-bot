@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 TOKEN = "8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
 LINK_AFILIADO = "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1"
 CATEGORIA = "Ofertas Relâmpago"
-INTERVALO_MINUTOS = 30
+INTERVALO_MINUTOS = 5  # intervalo reduzido para 5 minutos
 
 # === TEXTO DA MENSAGEM ===
 MENSAGEM = f"""🔥 *{CATEGORIA} Shopee!*
@@ -68,7 +68,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 
-
-
+     
 
 
