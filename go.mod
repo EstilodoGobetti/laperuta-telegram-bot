@@ -1,4 +1,4 @@
-module github.com/seuusuario/seuprojeto
+module github.com/EstilodoGobetti/laperuta-telegram-bot
 
 go 1.20
 
