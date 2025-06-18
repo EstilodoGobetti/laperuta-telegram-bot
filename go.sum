@@ -1,4 +1,4 @@
-github.com/gocolly/colly/v2 v2.1.0 h1:PmDmzy4bDdDIdExxrUD/M3O9+NO31J8lf5P4k1S0A7g=
-github.com/gocolly/colly/v2 v2.1.0/go.mod h1:rl46/uM41oHxUQ3Sva9+u/fLHP6Cv+Ep8QPt6tXNJr4A=
+github.com/gocolly/colly/v2 v2.1.0 h1:Q8OdcTx/ERiqpo2CjNcQUSuwZGbspPIMnLMj4Z1YgOw=
+github.com/gocolly/colly/v2 v2.1.0/go.mod h1:8Gp9Vh1tuW5cI3K0V/ovkjMDL2R/7lLYDW7F+WYwPBo=
 github.com/robfig/cron/v3 v3.0.1 h1:Ly+ujbW+oFqvKj+UDBCEJPtRhju2DaQFe5EiWuPS7aQ=
 github.com/robfig/cron/v3 v3.0.1/go.mod h1:FSsZ4PbLkoQiX9Rtr6/fhh/tdjDlCnYnKNsxm99sxCw=
