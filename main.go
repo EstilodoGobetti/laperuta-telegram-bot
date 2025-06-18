@@ -70,6 +70,7 @@ func enviarTelegram(mensagem string, token string, chatID string) error {
 	return nil
 }
 
+// Job que será executado nos horários programados
 func job(token, chatID string) {
 	log.Println("Executando job de atualização")
 
@@ -79,9 +80,9 @@ func job(token, chatID string) {
 		return
 	}
 
-	linkProduto := "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1" // seu link afiliado
+	linkProduto := "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1" // seu link de afiliado
 
-	msg := fmt.Sprintf("🔥 *Produto Shopee*\nPreço Atual: %s\n[Veja o produto aqui](%s)\n\n![Imagem](%s)", preco, linkProduto, img)
+	msg := fmt.Sprintf("🔥 *Produto Shopee*\nPreço Atual: %s\n[Veja o produto aqui](%s)\n\nImagem: %s", preco, linkProduto, img)
 
 	err = enviarTelegram(msg, token, chatID)
 	if err != nil {
@@ -99,6 +100,26 @@ func main() {
 	c := cron.New(cron.WithLocation(time.FixedZone("BRT", -3*3600)))
 
 	horarios := []string{
-		"0 0 * * *",   // 00:00
-		"0 9 * * *",   // 09:00
-		"0
+		"0 0 * * *",  // 00:00
+		"0 9 * * *",  // 09:00
+		"0 12 * * *", // 12:00
+		"0 16 * * *", // 16:00
+		"0 18 * * *", // 18:00
+		"0 20 * * *", // 20:00
+		"0 22 * * *", // 22:00
+	}
+
+	for _, h := range horarios {
+		_, err := c.AddFunc(h, func() {
+			job(token, chatID)
+		})
+		if err != nil {
+			log.Println("Erro ao agendar horário:", h, err)
+		}
+	}
+
+	c.Start()
+	log.Println("Bot iniciado e aguardando horários agendados...")
+
+	select {} // Mantém o programa rodando
+}
