@@ -11,10 +11,8 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// Função que faz scraping (exemplo básico)
-// Você deve trocar o seletor e a URL para o produto que quer monitorar
 func buscarDados() (string, string, error) {
-	url := "https://shopee.com.br/product/12345678/1234567890" // Troque para o URL do produto real
+	url := "https://shopee.com.br/product/12345678/1234567890" // Troque para o URL real do produto
 
 	c := colly.NewCollector()
 
@@ -49,7 +47,6 @@ func buscarDados() (string, string, error) {
 	return preco, imgURL, nil
 }
 
-// Função que envia mensagem para Telegram
 func enviarTelegram(mensagem string, token string, chatID string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
 
@@ -70,7 +67,6 @@ func enviarTelegram(mensagem string, token string, chatID string) error {
 	return nil
 }
 
-// Job que será executado nos horários programados
 func job(token, chatID string) {
 	log.Println("Executando job de atualização")
 
@@ -80,9 +76,9 @@ func job(token, chatID string) {
 		return
 	}
 
-	linkProduto := "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1" // seu link de afiliado
+	linkProduto := "https://s.shopee.com.br/2LMb6NCr2p?share_channel_code=1"
 
-	msg := fmt.Sprintf("🔥 *Produto Shopee*\nPreço Atual: %s\n[Veja o produto aqui](%s)\n\nImagem: %s", preco, linkProduto, img)
+	msg := fmt.Sprintf("🔥 *Produto Shopee*\n\nPreço Atual: %s\n\n[👉 Ver na Shopee](%s)", preco, linkProduto)
 
 	err = enviarTelegram(msg, token, chatID)
 	if err != nil {
@@ -93,20 +89,18 @@ func job(token, chatID string) {
 }
 
 func main() {
-	token := "8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
-	chatID := "1623073007"
+	token := "SEU_TOKEN_AQUI8113927737:AAHKFPdD7M-9XuP44NpZrt1AcpUM0bFxolk"
+	chatID := " 1623073007"
 
-	// Usando horário de Brasília (UTC-3)
 	c := cron.New(cron.WithLocation(time.FixedZone("BRT", -3*3600)))
 
 	horarios := []string{
 		"0 0 * * *",  // 00:00
 		"0 9 * * *",  // 09:00
 		"0 12 * * *", // 12:00
-		"0 16 * * *", // 16:00
+		"0 15 * * *", // 15:00
 		"0 18 * * *", // 18:00
-		"0 20 * * *", // 20:00
-		"0 22 * * *", // 22:00
+		"0 21 * * *", // 21:00
 	}
 
 	for _, h := range horarios {
@@ -114,12 +108,11 @@ func main() {
 			job(token, chatID)
 		})
 		if err != nil {
-			log.Println("Erro ao agendar horário:", h, err)
+			log.Println("Erro ao agendar tarefa:", err)
 		}
 	}
 
 	c.Start()
-	log.Println("Bot iniciado e aguardando horários agendados...")
 
-	select {} // Mantém o programa rodando
+	select {} // bloqueia o programa para ele continuar rodando
 }
